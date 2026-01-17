@@ -1,0 +1,27 @@
+name: Daily MEGA to FTP (Clean & Upload)
+
+on:
+  schedule:
+    - cron: "30 3 * * *"   # 9:00 AM IST
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install rclone
+        run: |
+          curl https://rclone.org/install.sh | sudo bash
+
+      - name: Setup rclone config
+        run: |
+          mkdir -p ~/.config/rclone
+          echo "${{ secrets.RCLONE_CONFIG }}" > ~/.config/rclone/rclone.conf
+
+      - name: Clean FTP and upload ND LGD.xlsx
+        run: |
+          rclone delete ftp:/ && \
+          rclone copyto mega:"NIVODA SYNC/ND LGD.xlsx" ftp:"ND LGD.xlsx" \
+            --inplace --transfers 1 --checkers 1 --log-level INFO
+
